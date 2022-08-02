@@ -1,0 +1,17 @@
+{
+    "name": "am.component.system.tests",
+    "rootNamespace": "",
+    "references": [
+        "AM.Unity.Collections",
+        "am.unity.component.system"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

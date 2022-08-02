@@ -1,0 +1,14 @@
+{
+  "name": "com.am.unity.component.system",
+  "version": "1.0.1",
+  "displayName": "AM Unity Component System",
+  "description": "Unity Managed Component System",
+  "unity": "2021.1",
+  "dependencies": {
+ },
+ "keywords": [
+  ],
+  "author": {
+    "name": "Aeron Miles"
+  }
+}
