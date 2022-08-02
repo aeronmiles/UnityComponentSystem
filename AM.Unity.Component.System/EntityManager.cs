@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -16,24 +15,6 @@ namespace AM.Unity.Component.System
             m_Entitites.Clear();
             var entities = GetComponentsInChildren<Entity>(true);
             foreach (var e in entities) Add(e);
-        }
-
-        static List<IFixedUpdate> m_FixedUpdateEntities = new();
-        private void FixedUpdate()
-        {
-            m_FixedUpdateEntities.IFixedUpdate();
-        }
-
-        static List<IUpdate> m_UpdateEntities = new();
-        private void Update()
-        {
-            m_UpdateEntities.IUpdate();
-        }
-
-        static List<ILateUpdate> m_LateUpdateEntities = new();
-        private void LateUpdate()
-        {
-            m_LateUpdateEntities.ILateUpdate();
         }
 
         public static void Instantiate(Entity entity, int count = 1)
@@ -63,19 +44,6 @@ namespace AM.Unity.Component.System
                 entity.Components[c.GetType()].Add(c);
             }
 
-            foreach (var c in entity.Components)
-            {
-                foreach (var i in c.Value)
-                {
-                    if ((i as IFixedUpdate) != null)
-                        m_FixedUpdateEntities.Add(i as IFixedUpdate);
-                    if ((i as IUpdate) != null)
-                        m_UpdateEntities.Add(i as IUpdate);
-                    if ((i as ILateUpdate) != null)
-                        m_LateUpdateEntities.Add(i as ILateUpdate);
-                }
-            }
-
             m_Entitites.Add(entity);
 #if UNITY_EDITOR
             entity.Debug();
@@ -86,16 +54,6 @@ namespace AM.Unity.Component.System
         public static void Remove(Entity entity)
         {
             if (!m_Entitites.Contains(entity)) return;
-
-            foreach (var c in entity.Components)
-            {
-                foreach (var i in c.Value)
-                {
-                    m_FixedUpdateEntities.Remove(i as IFixedUpdate);
-                    m_UpdateEntities.Remove(i as IUpdate);
-                    m_LateUpdateEntities.Remove(i as ILateUpdate);
-                }
-            }
 
             m_Entitites.Remove(entity);
 #if UNITY_EDITOR
