@@ -39,6 +39,16 @@ namespace AM.Unity.Component.System
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static List<T> ComponentsOfType<T>(this IEnumerable<Entity> entity, ref List<T> listOut, bool includeInactive) where T : EntityComponent
+        {
+            listOut.Clear();
+            foreach (var e in entity)
+                listOut.AddRange(e.ComponentsOfType<T>(ref listOut, includeInactive));
+
+            return listOut;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool HasComponents<T>(this Entity entity) where T : EntityComponent
         {
             return entity.Components.ContainsKey(typeof(T));
