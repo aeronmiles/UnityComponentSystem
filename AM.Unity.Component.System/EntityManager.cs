@@ -7,7 +7,9 @@ namespace AM.Unity.Component.System
     public class EntityManager : MonoSingletonScene<EntityManager>
     {
         [Header("Debug")]
+#pragma warning disable IDE0052
         [SerializeField] List<Entity> m_EntityList;
+#pragma warning restore IDE0052
         static HashSet<Entity> m_Entitites = new();
 
         private void OnEnable()
@@ -36,17 +38,11 @@ namespace AM.Unity.Component.System
 
             var components = entity.GetComponents<EntityComponent>();
             entity.Components.Clear();
-            foreach (var c in components)
-            {
-                if (!entity.Components.ContainsKey(c.GetType()))
-                    entity.Components.Add(c.GetType(), new HashSet<EntityComponent>());
-
-                entity.Components[c.GetType()].Add(c);
-            }
-
+            foreach (var c in components) entity.AddComponent(c);
             m_Entitites.Add(entity);
+
 #if UNITY_EDITOR
-            entity.Debug();
+            entity.DebugEditor();
             I.m_EntityList = m_Entitites.ToList();
 #endif
         }
@@ -54,22 +50,19 @@ namespace AM.Unity.Component.System
         public static void Remove(Entity entity)
         {
             if (!m_Entitites.Contains(entity)) return;
-
             m_Entitites.Remove(entity);
+
 #if UNITY_EDITOR
             I.m_EntityList = m_Entitites.ToList();
 #endif
         }
 
-        public static List<T> ComponentsOfType<T>(ref List<T> listOut, bool includeInactive = true) where T : EntityComponent
+        public static List<T> GetComponents<T>(ref List<T> listOut, bool includeInactive = true) where T : EntityComponent
         {
             listOut.Clear();
             var itemsOfT = MemPool.Get<List<T>>();
-            foreach (var e in m_Entitites)
-            {
-                e.ComponentsOfType(ref itemsOfT, includeInactive);
-                listOut.AddRange(itemsOfT);
-            }
+            m_Entitites.Components(ref itemsOfT, includeInactive);
+            listOut.AddRange(itemsOfT);
 
             itemsOfT.Clear();
             itemsOfT.FreeTo_MemPool();
@@ -81,37 +74,7 @@ namespace AM.Unity.Component.System
         {
             listOut.Clear();
             foreach (var e in m_Entitites)
-                if (e.HasComponents<T>())
-                    if (includeInactive || e.gameObject.activeInHierarchy) listOut.Add(e);
-
-            return listOut;
-        }
-
-        public static List<Entity> WithAll<T0, T1>(ref List<Entity> listOut, bool includeInactive = true) where T0 : EntityComponent where T1 : EntityComponent
-        {
-            listOut.Clear();
-            foreach (var e in m_Entitites)
-                if (e.HasComponents<T0, T1>())
-                    if (includeInactive || e.gameObject.activeInHierarchy) listOut.Add(e);
-
-            return listOut;
-        }
-
-        public static List<Entity> WithAll<T0, T1, T2>(ref List<Entity> listOut, bool includeInactive) where T0 : EntityComponent where T1 : EntityComponent where T2 : EntityComponent
-        {
-            listOut.Clear();
-            foreach (var e in m_Entitites)
-                if (e.HasComponents<T0, T1, T2>())
-                    if (includeInactive || e.gameObject.activeInHierarchy) listOut.Add(e);
-
-            return listOut;
-        }
-
-        public static List<Entity> WithAll<T0, T1, T2, T3>(ref List<Entity> listOut, bool includeInactive) where T0 : EntityComponent where T1 : EntityComponent where T2 : EntityComponent where T3 : EntityComponent
-        {
-            listOut.Clear();
-            foreach (var e in m_Entitites)
-                if (e.HasComponents<T0, T1, T2, T3>())
+                if (e.HasComponent<T>())
                     if (includeInactive || e.gameObject.activeInHierarchy) listOut.Add(e);
 
             return listOut;

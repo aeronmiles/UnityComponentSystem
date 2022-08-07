@@ -9,14 +9,16 @@ namespace AM.Unity.Component.System
     {
         [Header("Debug")]
         [SerializeField] List<EntityComponent> m_Components;
-        public Dictionary<Type, HashSet<EntityComponent>> Components = new();
+
+        public Dictionary<Type, EntityComponent> Components = new();
+        public Dictionary<Type, EntityComponent> InactiveComponents = new();
 
 #if UNITY_EDITOR
-        public void Debug()
+        public void DebugEditor()
         {
             m_Components = new();
             foreach (var c in Components)
-                m_Components.AddRange(c.Value);
+                m_Components.Add(c.Value);
         }
 #endif
     }
@@ -24,52 +26,162 @@ namespace AM.Unity.Component.System
     public static class EntityExt
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static List<T> ComponentsOfType<T>(this Entity entity, ref List<T> listOut, bool includeInactive) where T : EntityComponent
+        public static Entity AddComponent<T>(this Entity entity) where T : EntityComponent
         {
-            listOut.Clear();
-            if (entity.Components == null) return listOut;
-            if (entity.Components.ContainsKey(typeof(T)))
+            if (entity.InactiveComponents.ContainsKey(typeof(T)))
             {
-                var components = entity.Components[typeof(T)];
-                foreach (var c in components)
-                    if (includeInactive || c.gameObject.activeInHierarchy) listOut.Add((T)c);
+                var c = entity.InactiveComponents[typeof(T)];
+                c.IsActive = true;
+                entity.Components.Add(typeof(T), c);
+                entity.InactiveComponents.Remove(typeof(T));
             }
+            else if (!entity.Components.ContainsKey(typeof(T)))
+            {
+                if (entity.gameObject.GetComponent<T>() == null)
+                    entity.Components.Add(typeof(T), entity.gameObject.AddComponent<T>());
+#if DEBUG
+                else
+                    Debug.LogError($"{entity.gameObject.name} already has a {typeof(T).Name} component");
+#endif
+            }
+#if DEBUG
+            else
+                Debug.LogError($"EntityExt -> AddComponent<T> :: Entity: {entity.name} already has Component of Type: " + typeof(T).Name);
+#endif
 
-            return listOut;
+            return entity;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static List<T> ComponentsOfType<T>(this IEnumerable<Entity> entity, ref List<T> listOut, bool includeInactive) where T : EntityComponent
+        public static Entity AddComponent<T>(this Entity entity, T component) where T : EntityComponent
+        {
+            component.IsActive = true;
+            if (entity.InactiveComponents.ContainsValue(component))
+            {
+                entity.Components.Add(typeof(T), component);
+                entity.InactiveComponents.Remove(typeof(T));
+            }
+            else if (!entity.Components.ContainsValue(component))
+            {
+                if (entity.gameObject.GetComponent<T>() == null)
+                    entity.Components.Add(typeof(T), component);
+#if DEBUG
+                else
+                    Debug.LogError($"{entity.gameObject.name} already has a {typeof(T).Name} component");
+#endif
+            }
+#if DEBUG
+            else
+                Debug.LogError($"EntityExt -> AddComponent<T> :: Entity: {entity.name} already has Component of Type: " + typeof(T).Name);
+#endif
+
+            return entity;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IEnumerable<Entity> AddComponents<T>(this IEnumerable<Entity> entities) where T : EntityComponent
+        {
+            foreach (var e in entities) e.AddComponent<T>();
+            return entities;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IEnumerable<Entity> AddComponents<T>(this IEnumerable<Entity> entities, T component) where T : EntityComponent
+        {
+            foreach (var e in entities) e.AddComponent(component.DeepCopy());
+            return entities;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Entity RemoveComponent<T>(this Entity entity) where T : EntityComponent
+        {
+            if (entity.Components.ContainsKey(typeof(T)))
+            {
+                var c = entity.Components[typeof(T)];
+                c.IsActive = false;
+                entity.InactiveComponents.Add(typeof(T), c);
+                entity.Components.Remove(typeof(T));
+            }
+#if DEBUG
+            else
+                Debug.LogError($"EntityExt -> RemoveComponent<T> :: Entity: {entity.name} does not have Component of Type: " + typeof(T).Name);
+#endif
+
+            return entity;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Entity RemoveComponent<T>(this Entity entity, T component) where T : EntityComponent
+        {
+            component.IsActive = false;
+            if (entity.Components.ContainsValue(component))
+            {
+                entity.InactiveComponents.Add(typeof(T), entity.Components[typeof(T)]);
+                entity.Components.Remove(typeof(T));
+            }
+#if DEBUG
+            else
+                Debug.LogError($"EntityExt -> RemoveComponent<T> :: Entity: {entity.name} does not have Component of Type: " + typeof(T).Name);
+#endif
+
+            return entity;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Entity RemoveAllComponents(this Entity entity)
+        {
+            entity.Components.Clear();
+            entity.InactiveComponents.Clear();
+            return entity;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IEnumerable<Entity> RemoveAllComponents(this IEnumerable<Entity> entities)
+        {
+            foreach (var e in entities) e.RemoveAllComponents();
+            return entities;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IEnumerable<Entity> RemoveComponents<T>(this IEnumerable<Entity> entities) where T : EntityComponent
+        {
+            foreach (var e in entities) e.RemoveComponent<T>();
+            return entities;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T Component<T>(this Entity entity) where T : EntityComponent
+        {
+            if (entity.Components.ContainsKey(typeof(T)))
+                return (T)entity.Components[typeof(T)];
+
+            return null;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static List<T> Components<T>(this IEnumerable<Entity> entity, ref List<T> listOut, bool includeInactive) where T : EntityComponent
         {
             listOut.Clear();
             foreach (var e in entity)
-                listOut.AddRange(e.ComponentsOfType<T>(ref listOut, includeInactive));
+                if (e.Components.ContainsKey(typeof(T)) && (e.gameObject.activeInHierarchy || includeInactive))
+                {
+                    var c = e.Component<T>();
+                    if (c != null) listOut.Add(c);
+                }
 
             return listOut;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool HasComponents<T>(this Entity entity) where T : EntityComponent
+        public static bool HasComponent<T>(this Entity entity) where T : EntityComponent
         {
             return entity.Components.ContainsKey(typeof(T));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool HasComponents<T0, T1>(this Entity entity) where T0 : EntityComponent where T1 : EntityComponent
+        public static bool HasComponent<T>(this Entity entity, T component) where T : EntityComponent
         {
-            return entity.Components.ContainsKey(typeof(T0)) && entity.Components.ContainsKey(typeof(T1));
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool HasComponents<T0, T1, T2>(this Entity entity) where T0 : EntityComponent where T1 : EntityComponent where T2 : EntityComponent
-        {
-            return entity.Components.ContainsKey(typeof(T0)) && entity.Components.ContainsKey(typeof(T1)) && entity.Components.ContainsKey(typeof(T2));
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool HasComponents<T0, T1, T2, T3>(this Entity entity) where T0 : EntityComponent where T1 : EntityComponent where T2 : EntityComponent  where T3 : EntityComponent
-        {
-            return entity.Components.ContainsKey(typeof(T0)) && entity.Components.ContainsKey(typeof(T1)) && entity.Components.ContainsKey(typeof(T2)) && entity.Components.ContainsKey(typeof(T3));
+            return entity.Components.ContainsValue(component);
         }
     }
 }
