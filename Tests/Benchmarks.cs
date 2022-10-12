@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace AM.Unity.Component.System
@@ -10,7 +8,7 @@ namespace AM.Unity.Component.System
         private void OnEnable()
         {
             var entity = FindObjectOfType<Entity>();
-            EntityManager.Instantiate(entity, m_Count);
+            EntityManager.I(gameObject.scene).Instantiate(entity, m_Count);
         }
     }
 }
