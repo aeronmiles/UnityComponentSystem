@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace AM.Unity.Component.System
 {
+    [DisallowMultipleComponent]
     public class EntityManager : MonoSingletonScene<EntityManager>
     {
 
