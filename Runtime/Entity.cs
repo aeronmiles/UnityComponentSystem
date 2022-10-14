@@ -5,45 +5,49 @@ using System;
 
 namespace AM.Unity.Component.System
 {
-    [ExecuteInEditMode]
     [DisallowMultipleComponent]
+    [ExecuteInEditMode]
     public class Entity : MonoBehaviour
     {
         [Header("Debug")]
-        [SerializeField] List<EntityComponent> m_ComponentList;
-
+        [SerializeField] List<EntityComponent> m_ComponentList = new();
         public Dictionary<Type, EntityComponent> Components = new();
 
-        internal void AddComponent(EntityComponent component)
+        private void AddComponent(EntityComponent component)
         {
-            Components.Add(component.GetType(), component);
+            var type = component.GetType();
+            if (Components.ContainsKey(type))
+            {
+                if (Components[type] != component)
+                    Components[type] = component;
+            }
+            else
+            {
+                Components.Add(type, component);
+            }
         }
 
-        internal void RemoveComponent(EntityComponent component)
+        internal void UpdateComponents()
         {
-            Type t = component.GetType();
-            if (Components.ContainsKey(t))
-                if (Components[t] == component)
-                    Components.Remove(t);
-        }
-
+            Components.Clear();
+            var components = GetComponents<EntityComponent>();
+            foreach (var c in components) AddComponent(c);
 #if UNITY_EDITOR
-        private void Awake() => EntityManager.I(gameObject.scene).Add(this);
-
-        private void OnDestroy() => EntityManager.I(gameObject.scene).Remove(this);
-
-        public void Editor_Debug()
-        {
             m_ComponentList.Clear();
             m_ComponentList.AddRange(Components.Values);
+#endif
         }
 
-        private void Update()
+        private void Awake()
         {
-            Awake();
-            Editor_Debug();
+            EntityManager.I(gameObject.scene).Add(this);
+            UpdateComponents();
         }
-#endif
+
+        private void OnDestroy()
+        {
+            EntityManager.I(gameObject.scene).Remove(this);
+        }
     }
 
     public static class EntityExt

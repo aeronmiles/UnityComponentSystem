@@ -8,12 +8,18 @@ namespace AM.Unity.Component.System
     {
         protected void Awake()
         {
-            GetComponent<Entity>().AddComponent(this);
+            GetComponent<Entity>().UpdateComponents();
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.delayCall += GetComponent<Entity>().UpdateComponents;
+#endif
         }
 
         protected void OnDestroy()
         {
-            GetComponent<Entity>().RemoveComponent(this);
+            GetComponent<Entity>().UpdateComponents();
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.delayCall += GetComponent<Entity>().UpdateComponents;
+#endif
         }
     }
 }

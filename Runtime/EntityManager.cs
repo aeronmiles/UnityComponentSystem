@@ -5,6 +5,7 @@ using UnityEngine;
 namespace AM.Unity.Component.System
 {
     [DisallowMultipleComponent]
+    [ExecuteInEditMode]
     public class EntityManager : MonoSingletonScene<EntityManager>
     {
 
@@ -12,13 +13,18 @@ namespace AM.Unity.Component.System
         [SerializeField] List<Entity> m_EntityList = new();
         HashSet<Entity> m_Entitites = new();
 
-        private void OnEnable()
+#if UNITY_EDITOR
+        private void Update()
         {
-            m_EntityList.Clear();
-            m_Entitites.Clear();
-            var entities = FindObjectsOfType<Entity>(true);
-            foreach (var e in entities) Add(e);
+            if (!Application.isPlaying)
+            {
+                m_EntityList.Clear();
+                m_Entitites.Clear();
+                var entities = FindObjectsOfType<Entity>(true);
+                foreach (var e in entities) Add(e);
+            }
         }
+#endif
 
         public void Instantiate(Entity entity, int count = 1)
         {
@@ -27,25 +33,25 @@ namespace AM.Unity.Component.System
                 Add(Instantiate(entity, parent));
         }
 
-        public void Destroy(Entity entity)
+        internal void Destroy(Entity entity)
         {
             Remove(entity);
             Destroy(entity.gameObject);
         }
 
-        public void Add(Entity entity)
+        internal void Add(Entity entity)
         {
             if (m_Entitites.Contains(entity)) return;
 
             m_Entitites.Add(entity);
 
 #if UNITY_EDITOR
-            entity.Editor_Debug();
+            // Editor Debug
             m_EntityList = m_Entitites.ToList();
 #endif
         }
 
-        public void Remove(Entity entity)
+        internal void Remove(Entity entity)
         {
             if (!m_Entitites.Contains(entity)) return;
 
