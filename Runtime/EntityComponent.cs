@@ -3,10 +3,17 @@ using UnityEngine;
 namespace AM.Unity.Component.System
 {
     [RequireComponent(typeof(Entity))]
+    [ExecuteInEditMode]
     public abstract class EntityComponent : MonoBehaviour
     {
-        private void Awake() => EntityManager.I(gameObject.scene).Add(GetComponent<Entity>());
+        protected void Awake()
+        {
+            GetComponent<Entity>().AddComponent(this);
+        }
 
-        private void OnDestroy() => EntityManager.I(gameObject.scene).Remove(GetComponent<Entity>());
+        protected void OnDestroy()
+        {
+            GetComponent<Entity>().RemoveComponent(this);
+        }
     }
 }

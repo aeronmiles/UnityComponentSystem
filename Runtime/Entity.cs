@@ -5,21 +5,44 @@ using System;
 
 namespace AM.Unity.Component.System
 {
+    [ExecuteInEditMode]
+    [DisallowMultipleComponent]
     public class Entity : MonoBehaviour
     {
         [Header("Debug")]
-        [SerializeField] List<EntityComponent> m_Components;
-        public Dictionary<Type, HashSet<EntityComponent>> Components = new();
+        [SerializeField] List<EntityComponent> m_ComponentList;
 
-#if UNITY_EDITOR
-        public void Debug()
+        public Dictionary<Type, EntityComponent> Components = new();
+
+        internal void AddComponent(EntityComponent component)
         {
-            m_Components = new();
-            foreach (var c in Components)
-                m_Components.AddRange(c.Value);
+            Components.Add(component.GetType(), component);
         }
 
-        private void OnValidate() => Debug();
+        internal void RemoveComponent(EntityComponent component)
+        {
+            Type t = component.GetType();
+            if (Components.ContainsKey(t))
+                if (Components[t] == component)
+                    Components.Remove(t);
+        }
+
+#if UNITY_EDITOR
+        private void Awake() => EntityManager.I(gameObject.scene).Add(this);
+
+        private void OnDestroy() => EntityManager.I(gameObject.scene).Remove(this);
+
+        public void Editor_Debug()
+        {
+            m_ComponentList.Clear();
+            m_ComponentList.AddRange(Components.Values);
+        }
+
+        private void Update()
+        {
+            Awake();
+            Editor_Debug();
+        }
 #endif
     }
 
@@ -30,11 +53,11 @@ namespace AM.Unity.Component.System
         {
             listOut.Clear();
             if (entity.Components == null) return listOut;
-            if (entity.Components.ContainsKey(typeof(T)))
+            foreach (var c in entity.Components)
             {
-                var components = entity.Components[typeof(T)];
-                foreach (var c in components)
-                    if (includeInactive || c.gameObject.activeInHierarchy) listOut.Add((T)c);
+                if (c.Value as T != null)
+                    if (includeInactive || c.Value.gameObject.activeInHierarchy)
+                        listOut.Add((T)c.Value);
             }
 
             return listOut;
@@ -45,10 +68,10 @@ namespace AM.Unity.Component.System
         {
             listOut.Clear();
             var tempList = MemPool.Get<List<T>>();
-            
+
             foreach (var e in entity)
                 listOut.AddRange(e.ComponentsOfType<T>(ref tempList, includeInactive));
-            
+
             tempList.Clear();
             MemPool.Free(tempList);
 
@@ -56,27 +79,32 @@ namespace AM.Unity.Component.System
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool HasComponents<T>(this Entity entity) where T : EntityComponent
+        public static bool HasComponent<T>(this Entity entity) where T : EntityComponent
         {
-            return entity.Components.ContainsKey(typeof(T));
+            var tempList = MemPool.Get<List<T>>();
+            bool hasComponent = entity.ComponentsOfType(ref tempList, true).Count > 0;
+            tempList.Clear();
+            MemPool.Free(tempList);
+
+            return hasComponent;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool HasComponents<T0, T1>(this Entity entity) where T0 : EntityComponent where T1 : EntityComponent
         {
-            return entity.Components.ContainsKey(typeof(T0)) && entity.Components.ContainsKey(typeof(T1));
+            return entity.HasComponent<T0>() && entity.HasComponent<T1>();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool HasComponents<T0, T1, T2>(this Entity entity) where T0 : EntityComponent where T1 : EntityComponent where T2 : EntityComponent
         {
-            return entity.Components.ContainsKey(typeof(T0)) && entity.Components.ContainsKey(typeof(T1)) && entity.Components.ContainsKey(typeof(T2));
+            return entity.HasComponent<T0>() && entity.HasComponent<T1>() && entity.HasComponent<T2>();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool HasComponents<T0, T1, T2, T3>(this Entity entity) where T0 : EntityComponent where T1 : EntityComponent where T2 : EntityComponent where T3 : EntityComponent
         {
-            return entity.Components.ContainsKey(typeof(T0)) && entity.Components.ContainsKey(typeof(T1)) && entity.Components.ContainsKey(typeof(T2)) && entity.Components.ContainsKey(typeof(T3));
+            return entity.HasComponent<T0>() && entity.HasComponent<T1>() && entity.HasComponent<T2>() && entity.HasComponent<T3>();
         }
     }
 }

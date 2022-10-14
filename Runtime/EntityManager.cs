@@ -8,13 +8,14 @@ namespace AM.Unity.Component.System
     {
 
         [Header("Debug")]
-        [SerializeField] List<Entity> m_EntityList;
+        [SerializeField] List<Entity> m_EntityList = new();
         HashSet<Entity> m_Entitites = new();
 
         private void OnEnable()
         {
+            m_EntityList.Clear();
             m_Entitites.Clear();
-            var entities = GetComponentsInChildren<Entity>(true);
+            var entities = FindObjectsOfType<Entity>(true);
             foreach (var e in entities) Add(e);
         }
 
@@ -35,20 +36,11 @@ namespace AM.Unity.Component.System
         {
             if (m_Entitites.Contains(entity)) return;
 
-            var components = entity.GetComponents<EntityComponent>();
-            entity.Components.Clear();
-            foreach (var c in components)
-            {
-                if (!entity.Components.ContainsKey(c.GetType()))
-                    entity.Components.Add(c.GetType(), new HashSet<EntityComponent>());
-
-                entity.Components[c.GetType()].Add(c);
-            }
-
             m_Entitites.Add(entity);
+
 #if UNITY_EDITOR
-            entity.Debug();
-            I(gameObject.scene).m_EntityList = m_Entitites.ToList();
+            entity.Editor_Debug();
+            m_EntityList = m_Entitites.ToList();
 #endif
         }
 
@@ -58,7 +50,7 @@ namespace AM.Unity.Component.System
 
             m_Entitites.Remove(entity);
 #if UNITY_EDITOR
-            I(gameObject.scene).m_EntityList = m_Entitites.ToList();
+            m_EntityList = m_Entitites.ToList();
 #endif
         }
 
@@ -82,7 +74,7 @@ namespace AM.Unity.Component.System
         {
             listOut.Clear();
             foreach (var e in m_Entitites)
-                if (e.HasComponents<T>())
+                if (e.HasComponent<T>())
                     if (includeInactive || e.gameObject.activeInHierarchy) listOut.Add(e);
 
             return listOut;
