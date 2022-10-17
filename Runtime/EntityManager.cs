@@ -13,6 +13,8 @@ namespace AM.Unity.Component.System
         [SerializeField] List<Entity> m_EntityList = new();
         HashSet<Entity> m_Entitites = new();
 
+        public void Entities(ref List<Entity> entities) => entities.AddRange(m_Entitites);
+
 #if UNITY_EDITOR
         private void Update()
         {
@@ -41,6 +43,7 @@ namespace AM.Unity.Component.System
 
         internal void Add(Entity entity)
         {
+            entity.UpdateComponents();
             if (m_Entitites.Contains(entity)) return;
 
             m_Entitites.Add(entity);

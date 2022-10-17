@@ -41,7 +41,6 @@ namespace AM.Unity.Component.System
         private void Awake()
         {
             EntityManager.I(gameObject.scene).Add(this);
-            UpdateComponents();
         }
 
         private void OnDestroy()
