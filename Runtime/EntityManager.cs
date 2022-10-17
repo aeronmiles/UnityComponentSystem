@@ -8,19 +8,21 @@ namespace AM.Unity.Component.System
     [ExecuteInEditMode]
     public class EntityManager : MonoSingletonScene<EntityManager>
     {
-
-        [Header("Debug")]
-        [SerializeField] List<Entity> m_EntityList = new();
-        HashSet<Entity> m_Entitites = new();
+        [SerializeField] List<Entity> m_Entitites;
 
         public void Entities(ref List<Entity> entities) => entities.AddRange(m_Entitites);
+
+        private void OnEnable()
+        {
+            foreach (var e in m_Entitites)
+                e.UpdateComponents();
+        }
 
 #if UNITY_EDITOR
         private void Update()
         {
             if (!Application.isPlaying)
             {
-                m_EntityList.Clear();
                 m_Entitites.Clear();
                 var entities = FindObjectsOfType<Entity>(true);
                 foreach (var e in entities) Add(e);
@@ -47,11 +49,6 @@ namespace AM.Unity.Component.System
             if (m_Entitites.Contains(entity)) return;
 
             m_Entitites.Add(entity);
-
-#if UNITY_EDITOR
-            // Editor Debug
-            m_EntityList = m_Entitites.ToList();
-#endif
         }
 
         internal void Remove(Entity entity)
@@ -59,9 +56,6 @@ namespace AM.Unity.Component.System
             if (!m_Entitites.Contains(entity)) return;
 
             m_Entitites.Remove(entity);
-#if UNITY_EDITOR
-            m_EntityList = m_Entitites.ToList();
-#endif
         }
 
         public List<T> ComponentsOfType<T>(ref List<T> listOut, bool includeInactive = true) where T : EntityComponent
