@@ -13,6 +13,8 @@ namespace AM.Unity.Component.System
         [SerializeField] List<EntityComponent> m_ComponentList = new();
         public Dictionary<Type, EntityComponent> Components = new();
 
+        public T ComponentOfType<T>() where T : EntityComponent => GetComponent<T>();
+
         private void AddComponent(EntityComponent component)
         {
             var type = component.GetType();

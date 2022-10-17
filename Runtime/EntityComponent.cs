@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace AM.Unity.Component.System
@@ -6,19 +8,25 @@ namespace AM.Unity.Component.System
     [ExecuteInEditMode]
     public abstract class EntityComponent : MonoBehaviour
     {
+        public Entity Entity;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public List<T> ComponentsOfType<T>(ref List<T> listOut) where T : EntityComponent => Entity.ComponentsOfType<T>(ref listOut, true);
+
         protected void Awake()
         {
-            GetComponent<Entity>().UpdateComponents();
+            Entity = GetComponent<Entity>();
+            Entity.UpdateComponents();
 #if UNITY_EDITOR
-            UnityEditor.EditorApplication.delayCall += GetComponent<Entity>().UpdateComponents;
+            UnityEditor.EditorApplication.delayCall += Entity.UpdateComponents;
 #endif
         }
 
         protected void OnDestroy()
         {
-            GetComponent<Entity>().UpdateComponents();
+            Entity.UpdateComponents();
 #if UNITY_EDITOR
-            UnityEditor.EditorApplication.delayCall += GetComponent<Entity>().UpdateComponents;
+            UnityEditor.EditorApplication.delayCall += Entity.UpdateComponents;
 #endif
         }
     }
