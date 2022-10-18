@@ -18,7 +18,7 @@ namespace AM.Unity.Component.System
             Entity = GetComponent<Entity>();
             Entity.UpdateComponents();
 #if UNITY_EDITOR
-            UnityEditor.EditorApplication.delayCall += Entity.UpdateComponents;
+            UnityEditor.EditorApplication.delayCall += () => { if (this != null) Entity?.UpdateComponents(); };
 #endif
         }
 
@@ -26,7 +26,7 @@ namespace AM.Unity.Component.System
         {
             Entity.UpdateComponents();
 #if UNITY_EDITOR
-            UnityEditor.EditorApplication.delayCall += Entity.UpdateComponents;
+            UnityEditor.EditorApplication.delayCall += () => { if (this != null) Entity?.UpdateComponents(); };
 #endif
         }
     }

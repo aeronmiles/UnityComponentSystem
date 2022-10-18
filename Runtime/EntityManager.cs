@@ -8,7 +8,7 @@ namespace AM.Unity.Component.System
     [ExecuteInEditMode]
     public class EntityManager : MonoSingletonScene<EntityManager>
     {
-        [SerializeField] List<Entity> m_Entitites;
+        [SerializeField] List<Entity> m_Entitites = new();
 
         public void Entities(ref List<Entity> entities) => entities.AddRange(m_Entitites);
 
