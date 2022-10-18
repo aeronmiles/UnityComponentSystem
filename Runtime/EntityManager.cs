@@ -14,6 +14,7 @@ namespace AM.Unity.Component.System
 
         private void OnEnable()
         {
+            getSceneEntities();
             foreach (var e in m_Entitites)
                 e.UpdateComponents();
         }
@@ -22,13 +23,16 @@ namespace AM.Unity.Component.System
         private void Update()
         {
             if (!Application.isPlaying)
-            {
-                m_Entitites.Clear();
-                var entities = FindObjectsOfType<Entity>(true);
-                foreach (var e in entities) Add(e);
-            }
+                getSceneEntities();
         }
 #endif
+
+        void getSceneEntities()
+        {
+            m_Entitites.Clear();
+            var entities = FindObjectsOfType<Entity>(true);
+            foreach (var e in entities) Add(e);
+        }
 
         public void Instantiate(Entity entity, int count = 1)
         {

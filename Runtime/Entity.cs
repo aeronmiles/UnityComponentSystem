@@ -9,11 +9,8 @@ namespace AM.Unity.Component.System
     [ExecuteInEditMode]
     public class Entity : MonoBehaviour
     {
-        [Header("Debug")]
         [SerializeField] List<EntityComponent> m_ComponentList = new();
         public Dictionary<Type, EntityComponent> Components = new();
-
-        public T ComponentOfType<T>() where T : EntityComponent => GetComponent<T>();
 
         private void AddComponent(EntityComponent component)
         {
@@ -60,9 +57,10 @@ namespace AM.Unity.Component.System
             if (entity.Components == null) return listOut;
             foreach (var c in entity.Components)
             {
-                if (c.Value as T != null)
+                T cAsType = c.Value as T;
+                if (cAsType != null)
                     if (includeInactive || c.Value.gameObject.activeInHierarchy)
-                        listOut.Add((T)c.Value);
+                        listOut.Add(cAsType);
             }
 
             return listOut;
