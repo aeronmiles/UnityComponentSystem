@@ -10,7 +10,12 @@ namespace AM.Unity.Component.System
     {
         [SerializeField] List<Entity> m_Entitites = new();
 
-        public void Entities(ref List<Entity> entities) => entities.AddRange(m_Entitites);
+        public List<Entity> Entities(ref List<Entity> entities)
+        {
+            entities.Clear();
+            entities.AddRange(m_Entitites);
+            return entities;
+        }
 
         private void OnEnable()
         {
