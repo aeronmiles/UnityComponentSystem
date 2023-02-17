@@ -20,8 +20,6 @@ namespace AM.Unity.Component.System
         private void OnEnable()
         {
             getSceneEntities();
-            foreach (var e in m_Entitites)
-                e.UpdateComponents();
         }
 
 #if UNITY_EDITOR
