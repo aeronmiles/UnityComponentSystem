@@ -65,6 +65,12 @@ namespace AM.Unity.Component.System
             m_Entitites.Remove(entity);
         }
 
+        public List<T> ComponentsOfType<T>(bool includeInactive = true) where T : EntityComponent
+        {
+            List<T> listOut = new();
+            return ComponentsOfType(ref listOut, includeInactive);
+        }
+
         public List<T> ComponentsOfType<T>(ref List<T> listOut, bool includeInactive = true) where T : EntityComponent
         {
             listOut.Clear();
