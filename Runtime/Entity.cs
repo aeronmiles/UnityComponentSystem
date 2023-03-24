@@ -9,8 +9,8 @@ namespace AM.Unity.Component.System
     [ExecuteInEditMode]
     public class Entity : MonoBehaviour
     {
-        [SerializeField] List<EntityComponent> m_ComponentList = new();
-        public Dictionary<Type, EntityComponent> Components = new();
+        [SerializeField] List<EntityComponent> m_ComponentList = new List<EntityComponent>();
+        public Dictionary<Type, EntityComponent> Components = new Dictionary<Type, EntityComponent>();
 
         private void AddComponent(EntityComponent component)
         {

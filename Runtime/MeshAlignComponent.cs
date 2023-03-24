@@ -9,7 +9,7 @@ public class MeshAlignComponent : EntityComponent
     public MeshFilter MeshFilter;
     public Transform AlignTransform;
     public bool AlignToNormal = false;
-    public List<int> VertexIndicies = new();
+    public List<int> VertexIndicies = new List<int>();
 
     Transform m_Transform;
     private new void Awake()

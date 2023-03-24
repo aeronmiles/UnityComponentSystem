@@ -8,7 +8,7 @@ namespace AM.Unity.Component.System
     [ExecuteInEditMode]
     public class EntityManager : MonoSingletonScene<EntityManager>
     {
-        [SerializeField] List<Entity> m_Entitites = new();
+        [SerializeField] List<Entity> m_Entitites = new List<Entity>();
 
         public List<Entity> Entities(ref List<Entity> entities)
         {
@@ -67,7 +67,7 @@ namespace AM.Unity.Component.System
 
         public List<T> ComponentsOfType<T>(bool includeInactive = true) where T : EntityComponent
         {
-            List<T> listOut = new();
+            List<T> listOut = new List<T>();
             return ComponentsOfType(ref listOut, includeInactive);
         }
 
