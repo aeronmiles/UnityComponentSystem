@@ -39,12 +39,12 @@ namespace AM.Unity.Component.System
 
         private void Awake()
         {
-            EntityManager.I(gameObject.scene).Add(this);
+            EntityManager.I(gameObject.scene)?.Add(this);
         }
 
         private void OnDestroy()
         {
-            EntityManager.I(gameObject.scene).Remove(this);
+            EntityManager.I(gameObject.scene)?.Remove(this);
         }
     }
 
